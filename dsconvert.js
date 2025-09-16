@@ -179,7 +179,13 @@ function DesyncedStringToObject(str, info)
 			case MP_FixMap:   return ParseTable(0, true);
 			case MP_DESYNCED_USERDATA:
 				if (is_table_key) throw new Error("Unable to parse table key of type 'userdata'");
-				throw new Error("Parsing userdata type " + GetIntPacked() + " is not supported");
+				var udtype = GetIntPacked();
+				if (udtype == 2)
+				{
+					var ebits = v.getUint8(p++, true), e0 = (ebits&4), eid = (e0 ? 0 : GetIntPacked() * ((ebits&1) ? -1 : 1)), ever = (e0 ? 0 : GetIntPacked() * ((ebits&2) ? -1 : 1));
+					return "__ENTITY:" + eid + "|" + ever + "__";
+				}
+				else throw new Error("Parsing userdata type " + udtype + " is not supported");
 			default:
 				if      (type < MP_FixMap)   return type;
 				else if (type < MP_FixArray) return ParseTable((type - MP_FixMap), true);
@@ -207,7 +213,7 @@ function ObjectToDesyncedString(obj, type)
 		MP_Int8      = 0xd0, MP_Int16     = 0xd1, MP_Int32     = 0xd2, MP_Int64     = 0xd3,
 		MP_Str8      = 0xd9, MP_Str16     = 0xda, MP_Str32     = 0xdb,
 		MP_Array16   = 0xdc, MP_Array32   = 0xdd,
-		MP_Map16     = 0xde, MP_Map32     = 0xdf;
+		MP_Map16     = 0xde, MP_Map32     = 0xdf, MP_DESYNCED_USERDATA = 0xc1;
 
 	function Serialize(v, is_table_key)
 	{
@@ -243,6 +249,13 @@ function ObjectToDesyncedString(obj, type)
 				else                       { Push(MP_Uint64); Grow(8).setUint64(pos, v, true); }
 				break;
 			case 'string':
+				var ent = v.match(/^__ENTITY:(-?\d+)\|(-?\d+)__$/);
+				if (ent) // MP_DESYNCED_USERDATA type Entity
+				{
+					var ever = ent[2]|0, eid = ent[1]|0, e0 = !(ever|eid), ebits = (eid<0?1:0) | (ever<0?2:0) | (e0?4:0);
+					Push(MP_DESYNCED_USERDATA); PushIntPacked(2); Push(ebits); if (!e0) { PushIntPacked(Math.abs(eid)); PushIntPacked(Math.abs(ever)); }
+					break;
+				}
 				const strsz = v.length;
 				if      (strsz <    32) { Push(MP_FixStr | strsz); }
 				else if (strsz <   256) { Push(MP_Str8); Grow(1).setUint8(pos, strsz); }
