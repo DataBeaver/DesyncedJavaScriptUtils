@@ -45,7 +45,7 @@ function run()
 			document.getElementById('typ').value = info.type + " (" + (info.type == "B" ? "BLUEPRINT" : (info.type == "C" ? "BEHAVIOR" : (info.type == "R" ? "REGISTER" : "UNKNOWN"))) + ")";
 			if (info.type == "C" && obj.dependencies)
 			{
-				mapstr = "";
+				let mapstr = "";
 				for (let i = 0; i < obj.dependencies.length; ++i)
 					mapstr += (i + 1) + ": " + obj.dependencies[i].name + "\n";
 				document.getElementById('submap').value = mapstr;
@@ -64,6 +64,7 @@ function run()
 	{
 		document.getElementById('outp').value = "ERROR: " + e.message;
 		document.getElementById('typ').value = "";
+		document.getElementById('submap').value = "";
 	}
 }
 </script>
