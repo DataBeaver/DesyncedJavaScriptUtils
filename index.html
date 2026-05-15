@@ -73,18 +73,31 @@ function search()
 	if (!jsonobj)
 		return;
 
-	var str = document.getElementById('search').value;
+	let str = document.getElementById('search').value.toLowerCase();
+	if(!str)
+		return;
+
+	let words = str.split(' ');
 
 	let subs = [];
 	for (let i = 0; i < jsonobj.dependencies.length; ++i)
 	{
-		if (jsonobj.dependencies[i].name == str)
+		let name = jsonobj.dependencies[i].name.toLowerCase();
+		if (name == str)
 		{
 			subs = [i];
 			break;
 		}
-		else if (jsonobj.dependencies[i].name.startsWith(str))
-			subs.push(i);
+		else
+		{
+			let allFound = true;
+			for (let w of words)
+				if (name.indexOf(w) < 0)
+					allFound = false;
+
+			if (allFound)
+				subs.push(i);
+		}
 	}
 
 	let result = "";
