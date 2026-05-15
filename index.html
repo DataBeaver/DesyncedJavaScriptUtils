@@ -111,8 +111,11 @@ function search()
 		if (jsonobj.dependencies)
 		{
 			for (let d of jsonobj.dependencies)
-				if (search_sub(d, s))
-					result += "Used in " + d.name + "\n";
+			{
+				let count = search_sub(d, s);
+				if (count > 0)
+					result += "Used in " + d.name + " (" + count + " occurrences)\n";
+			}
 		}
 	}
 
@@ -121,14 +124,15 @@ function search()
 
 function search_sub(behaviour, sub)
 {
+	let count = 0;
 	for (let key in behaviour)
 	{
 		inst = behaviour[key];
 		if (inst.op === "call" && inst.sub == sub + 1)
-			return true;
+			++count;
 	}
 
-	return false;
+	return count;
 }
 </script>
 
