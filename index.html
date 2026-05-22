@@ -31,6 +31,7 @@ a:hover { color: #f26c43 }
 <tr><th style="padding:6pt">Search</th></tr>
 <tr><td style="padding:6pt">Subroutine:<br><input id="search_sub" style="width:100%"/></td></tr>
 <tr><td style="padding:6pt">Comment:<br><input id="search_cmt" style="width:100%"/></td></tr>
+<tr><td style="padding:6pt">Number:<br><input id="search_num" style="width:100%"/></td></tr>
 <tr><td style="padding:6pt"><button style="width:100%;height:4em" onclick="search();">Search</button></td></tr>
 <tr><th style="padding:6pt">Results</th></tr>
 <tr><td style="padding:6pt"><textarea type="text" id="srchres" rows=24 cols=120 readonly></textarea></tr>
@@ -141,6 +142,54 @@ function search()
 		}
 	}
 
+	let expr = document.getElementById('search_num').value.toLowerCase();
+	if (expr)
+	{
+		let words = expr.split(' ');
+		let predicate = null;
+		if (words.length == 1)
+		{
+			let num = Number(words[0]);
+			predicate = n => n == num;
+		}
+		else
+		{
+			let num = Number(words[1]);
+			if (words[0] == '>')
+				predicate = n => n > num;
+			else if (words[0] == '>=')
+				predicate = n => n >= num;
+			else if (words[0] == '<')
+				predicate = n => n < num;
+			else if (words[0] == '<=')
+				predicate = n => n <= num;
+			else if (words[0] == '==')
+				predicate = n => n == num;
+			else if (words[0] == '!=')
+				predicate = n => n != num;
+		}
+
+		let nums = search_number(jsonobj, predicate);
+		if (nums.length > 0)
+			result += "Numbers: " + nums.join(" ") + "\n";
+
+		if (jsonobj.dependencies)
+		{
+			for (let d of jsonobj.dependencies)
+			{
+				nums = search_number(d, predicate);
+				if (nums.length > 0)
+				{
+					if (result)
+						result += "\n";
+
+					result += "Subroutine: " + d.name + "\n";
+					result += "Numbers: " + nums.join(" ") + "\n";
+				}
+			}
+		}
+	}
+
 	document.getElementById('srchres').value = result;
 }
 
@@ -175,6 +224,25 @@ function search_comment(behaviour, words)
 			comments.push(inst.cmt);
 	}
 	return comments;
+}
+
+function search_number(behaviour, predicate)
+{
+	let nums = [];
+	for (let key in behaviour)
+	{
+		let inst = behaviour[key];
+		if (inst.op)
+		{
+			for (let k2 in inst)
+			{
+				let param = inst[k2];
+				if(param.num && predicate(param.num))
+					nums.push(param.num);
+			}
+		}
+	}
+	return nums;
 }
 </script>
 
