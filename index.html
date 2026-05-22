@@ -29,7 +29,7 @@ a:hover { color: #f26c43 }
 <tr><th style="padding:6pt">Output</th></tr>
 <tr><td style="padding:6pt">Type:<br><input id="typ" style="width:100%"/><br>Result</br><textarea type="text" id="outp" rows=24 cols=120 readonly></textarea></td></tr>
 <tr><th style="padding:6pt">Search</th></tr>
-<tr><td style="padding:6pt">Subroutine:<br><input id="search" style="width:100%"/>
+<tr><td style="padding:6pt">Subroutine:<br><input id="search_sub" style="width:100%"/></td></tr>
 <tr><td style="padding:6pt"><button style="width:100%;height:4em" onclick="search();">Search</button></td></tr>
 <tr><th style="padding:6pt">Results</th></tr>
 <tr><td style="padding:6pt"><textarea type="text" id="srchres" rows=24 cols=120 readonly></textarea></tr>
@@ -73,40 +73,41 @@ function search()
 	if (!jsonobj)
 		return;
 
-	let str = document.getElementById('search').value.toLowerCase();
-	if(!str)
-		return;
-
-	let words = str.split(' ');
-
-	let subs = [];
-	for (let i = 0; i < jsonobj.dependencies.length; ++i)
-	{
-		let name = jsonobj.dependencies[i].name.toLowerCase();
-		if (name == str)
-		{
-			subs = [i];
-			break;
-		}
-		else if (match_words(name, words))
-			subs.push(i);
-	}
-
 	let result = "";
-	for (let s of subs)
+
+	let sub_name = document.getElementById('search_sub').value.toLowerCase();
+	if(sub_name)
 	{
-		if (result)
-			result += "\n";
-		result += "Subroutine: " + jsonobj.dependencies[s].name + "\n";
-		if (search_sub(jsonobj, s))
-			result += "Used in " + jsonobj.name + "\n";
-		if (jsonobj.dependencies)
+		let words = sub_name.split(' ');
+
+		let subs = [];
+		for (let i = 0; i < jsonobj.dependencies.length; ++i)
 		{
-			for (let d of jsonobj.dependencies)
+			let name = jsonobj.dependencies[i].name.toLowerCase();
+			if (name == sub_name)
 			{
-				let count = search_sub(d, s);
-				if (count > 0)
-					result += "Used in " + d.name + " (" + count + " occurrences)\n";
+				subs = [i];
+				break;
+			}
+			else if (match_words(name, words))
+				subs.push(i);
+		}
+
+		for (let s of subs)
+		{
+			if (result)
+				result += "\n";
+			result += "Subroutine: " + jsonobj.dependencies[s].name + "\n";
+			if (search_sub_calls(jsonobj, s))
+				result += "Used in " + jsonobj.name + "\n";
+			if (jsonobj.dependencies)
+			{
+				for (let d of jsonobj.dependencies)
+				{
+					let count = search_sub_calls(d, s);
+					if (count > 0)
+						result += "Used in " + d.name + " (" + count + " occurrences)\n";
+				}
 			}
 		}
 	}
@@ -122,12 +123,12 @@ function match_words(text, words)
 	return true;
 }
 
-function search_sub(behaviour, sub)
+function search_sub_calls(behaviour, sub)
 {
 	let count = 0;
 	for (let key in behaviour)
 	{
-		inst = behaviour[key];
+		let inst = behaviour[key];
 		if (inst.op === "call" && inst.sub == sub + 1)
 			++count;
 	}
