@@ -167,8 +167,8 @@ function search()
 		}
 
 		let nums = search_number(jsonobj, predicate);
-		if (nums.length > 0)
-			result += "Numbers: " + nums.join(" ") + "\n";
+		for (let n of nums)
+			result += "Number: " + n + "\n";
 
 		if (jsonobj.dependencies)
 		{
@@ -181,7 +181,8 @@ function search()
 						result += "\n";
 
 					result += "Subroutine: " + d.name + "\n";
-					result += "Numbers: " + nums.join(" ") + "\n";
+					for (let n of nums)
+						result += "Number: " + n + "\n";
 				}
 			}
 		}
@@ -235,7 +236,7 @@ function search_number(behaviour, predicate)
 			{
 				let param = inst[k2];
 				if(param.num && predicate(param.num))
-					nums.push(param.num);
+					nums.push(param.num + " in instruction " + inst.op + " (param " + k2 + ")");
 			}
 		}
 	}
