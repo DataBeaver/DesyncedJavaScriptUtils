@@ -125,18 +125,15 @@ function search()
 		{
 			for (let d of jsonobj.dependencies)
 			{
-				let first = true;
-				for (let c of search_comment(d, words))
+				let cmts = search_comment(d, words);
+				if (cmts.length > 0)
 				{
-					if (first)
-					{
-						if (result)
-							result += "\n";
+					if (result)
+						result += "\n";
 
-						result += "Subroutine: " + d.name + "\n";
-						first = false;
-					}
-					result += "Comment: " + c + "\n";
+					result += "Subroutine: " + d.name + "\n";
+					for (let c of cmts)
+						result += "Comment: " + c + "\n";
 				}
 			}
 		}
