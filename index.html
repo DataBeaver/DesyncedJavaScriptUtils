@@ -30,6 +30,7 @@ a:hover { color: #f26c43 }
 <tr><td style="padding:6pt">Type:<br><input id="typ" style="width:100%"/><br>Result</br><textarea type="text" id="outp" rows=24 cols=120 readonly></textarea></td></tr>
 <tr><th style="padding:6pt">Search</th></tr>
 <tr><td style="padding:6pt">Subroutine:<br><input id="search_sub" style="width:100%"/></td></tr>
+<tr><td style="padding:6pt">Comment:<br><input id="search_cmt" style="width:100%"/></td></tr>
 <tr><td style="padding:6pt"><button style="width:100%;height:4em" onclick="search();">Search</button></td></tr>
 <tr><th style="padding:6pt">Results</th></tr>
 <tr><td style="padding:6pt"><textarea type="text" id="srchres" rows=24 cols=120 readonly></textarea></tr>
@@ -112,6 +113,34 @@ function search()
 		}
 	}
 
+	let comment = document.getElementById('search_cmt').value.toLowerCase();
+	if (comment)
+	{
+		let words = comment.split(' ');
+		for (let c of search_comment(jsonobj, words))
+			result += "Comment: " + c + "\n";
+
+		if (jsonobj.dependencies)
+		{
+			for (let d of jsonobj.dependencies)
+			{
+				let first = true;
+				for (let c of search_comment(d, words))
+				{
+					if (first)
+					{
+						if (result)
+							result += "\n";
+
+						result += "Subroutine: " + d.name + "\n";
+						first = false;
+					}
+					result += "Comment: " + c + "\n";
+				}
+			}
+		}
+	}
+
 	document.getElementById('srchres').value = result;
 }
 
@@ -134,6 +163,18 @@ function search_sub_calls(behaviour, sub)
 	}
 
 	return count;
+}
+
+function search_comment(behaviour, words)
+{
+	let comments = [];
+	for (let key in behaviour)
+	{
+		let inst = behaviour[key];
+		if (inst.op && inst.cmt && match_words(inst.cmt.toLowerCase(), words))
+			comments.push(inst.cmt);
+	}
+	return comments;
 }
 </script>
 
