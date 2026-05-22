@@ -88,16 +88,8 @@ function search()
 			subs = [i];
 			break;
 		}
-		else
-		{
-			let allFound = true;
-			for (let w of words)
-				if (name.indexOf(w) < 0)
-					allFound = false;
-
-			if (allFound)
-				subs.push(i);
-		}
+		else if (match_words(name, words))
+			subs.push(i);
 	}
 
 	let result = "";
@@ -120,6 +112,14 @@ function search()
 	}
 
 	document.getElementById('srchres').value = result;
+}
+
+function match_words(text, words)
+{
+	for (let w of words)
+		if (text.indexOf(w) < 0)
+			return false;
+	return true;
 }
 
 function search_sub(behaviour, sub)
