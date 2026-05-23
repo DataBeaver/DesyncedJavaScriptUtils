@@ -151,19 +151,31 @@ function search()
 		}
 		else
 		{
-			let num = Number(words[1]);
-			if (words[0] == '>')
-				predicate = n => n > num;
-			else if (words[0] == '>=')
-				predicate = n => n >= num;
-			else if (words[0] == '<')
-				predicate = n => n < num;
-			else if (words[0] == '<=')
-				predicate = n => n <= num;
-			else if (words[0] == '==')
-				predicate = n => n == num;
-			else if (words[0] == '!=')
-				predicate = n => n != num;
+			for (let i = 0; i + 1 < words.length; i += 2)
+			{
+				let num = Number(words[i+1]);
+				let p = null;
+				if (words[i] == '>')
+					p = n => n > num;
+				else if (words[i] == '>=')
+					p = n => n >= num;
+				else if (words[i] == '<')
+					p = n => n < num;
+				else if (words[i] == '<=')
+					p = n => n <= num;
+				else if (words[i] == '==')
+					p = n => n == num;
+				else if (words[i] == '!=')
+					p = n => n != num;
+				if (p)
+				{
+					let old = predicate;
+					if (old)
+						predicate = n => old(n) && p(n)
+					else
+						predicate = p
+				}
+			}
 		}
 
 		let nums = search_number(jsonobj, predicate);
